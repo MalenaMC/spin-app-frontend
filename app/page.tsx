@@ -264,20 +264,18 @@ export default function WheelPage() {
                     exit={{ opacity: 0, scale: 0.5 }}
                     style={{
                       position: 'absolute',
-                      top: '20%',
+                      top: '30%',
                       left: '25%',
                       transform: 'translate(-50%, -50%)',
                       width: '220px',
                       padding: '16px',
                       background: 'linear-gradient(135deg, rgba(40, 44, 109, 1), rgba(39, 14, 71, 1), rgba(103, 21, 114, 1))', // degradado glow
-                      border: '4px solid rgba(255, 237, 156, 1)', // borde amarillo
+                      border: '4px solid rgba(255, 234, 141, 1)', // borde amarillo
                       borderRadius: '16px',
                       textAlign: 'center',
                       boxShadow: `
-                        0 0 10px rgba(255, 238, 0, 1),
-                        0 0 25px rgba(105, 46, 119, 1),
-                        0 0 40px rgba(28, 51, 100, 1),
-                        0 0 15px rgba(255, 0, 242, 1)
+                        0 0 10px rgba(255, 187, 0, 1),
+                        0 0 15px rgba(255, 247, 170, 1)
                       `, // sombras múltiples para efecto glow
                       zIndex: 20,
                     }}
@@ -296,7 +294,7 @@ export default function WheelPage() {
                       fontWeight: 600,
                       color: 'white',
                       margin: 0,
-                      textShadow: '0 0 2px white, 0 0 5px rgba(255, 255, 255, 1)', // brillo leve en usuario
+                      textShadow: '0 0 2px white, 0 0 5px rgba(0, 162, 255, 1)', // brillo leve en usuario
                     }}>
                       @{lastWinner.username ?? "Anónimo"}
                     </p>
