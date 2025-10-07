@@ -3,6 +3,7 @@ import { useEffect, useState, useRef } from "react"
 import { io, type Socket } from "socket.io-client"
 import { Settings, Play, Trophy } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
+import confetti from "canvas-confetti"
 
 interface Segment {
   id: string
@@ -104,6 +105,22 @@ export default function WheelPage() {
     })
   }
 
+  // Confeti
+  const launchConfetti = () => {
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 0.6 },
+      colors: ["#ff0a54", "#ff477e", "#ff85a1", "#fbb1b1"],
+    })
+  }
+
+  // Sonido
+  const playSound = (url: string) => {
+    const audio = new Audio(url)
+    audio.play()
+  }
+
   /*** COLA DE SPINS ***/
   const enqueueSpin = (event: SpinEvent) => {
     setSpinQueue((prev) => [...prev, event])
@@ -119,6 +136,8 @@ export default function WheelPage() {
 
   const runSpin = (event: SpinEvent) => {
     if (!wheelRef.current) return
+
+    playSound("/sounds/roulette2.mp3") // coloca tu sonido en public/sounds
 
     setIsSpinning(true)
 
@@ -158,6 +177,13 @@ export default function WheelPage() {
         setRecentSpins((prev) => [winner, ...prev].slice(0, 5))
         setIsSpinning(false)
         console.log("🏆 Ganador (callback):", winner.text, "segmentNumber:", segmentNumber)
+
+        // 🔥 Confeti + sonido si es SKU_1040
+        if (winner.segment?.id === "SKU_1040") {
+          launchConfetti()
+          playSound("/sounds/confetti.mp3") // asegúrate de tener este archivo en public/sounds
+        }
+
       },
     }
 
