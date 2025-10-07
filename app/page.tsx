@@ -208,14 +208,21 @@ export default function WheelPage() {
             <div className="bg-gradient-to-br from-purple-800 via-purple-700 to-purple-600 rounded-2xl p-8 border border-purple-600 shadow-2xl">            <div className="flex flex-col items-center">
               <div className="relative">
                 {/* Indicador */}
-                <div className="absolute -top-8 left-1/2 -translate-x-1/2 z-10">
-                  <div
-                    className="w-0 h-0 border-l-[20px] border-l-transparent
-                              border-r-[20px] border-r-transparent
-                              border-t-[30px] border-t-yellow-400
-                              drop-shadow-[0_0_10px_rgba(255,255,0,0.7),0_0_20px_rgba(128,0,255,0.5)]"
-                  />
-                </div>
+<div style={{
+    position: 'absolute',
+    top: '-30px',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    zIndex: 10,
+}}>
+  <div style={{
+      width: 0,
+      height: 0,
+      borderLeft: '20px solid transparent',
+      borderRight: '20px solid transparent',
+      borderTop: '30px solid rgb(255, 223, 0)', // amarillo sólido
+  }} />
+</div>
 
                 {/* Canvas de la ruleta */}
                 <canvas ref={canvasRef} id="wheelCanvas" width="400" height="400" className="drop-shadow-2xl" />
@@ -229,28 +236,45 @@ export default function WheelPage() {
                   <Play className="w-8 h-8 text-white" fill="white" />
                 </button>
 
-                {/* ALERTA DE GANADOR */}
-                <AnimatePresence>
-                  {lastWinner && (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.5 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.5 }}
-                      className="bg-blue-800/95 absolute top-2/6 left-1/2 -translate-x-1/2 -translate-y-1/2 w-55 p-4
-                                 
-                                 border-4 border-yellow-400 rounded-2xl text-center
-                                 shadow-[0_0_20px_rgba(255,255,0,0.7),0_0_40px_rgba(255,255,150,0.5)]
-                                 z-20"
-                    >
-                      <p className="text-xl font-extrabold text-yellow-400 mb-1 drop-shadow-lg">
-                        {lastWinner?.segment?.text ?? lastWinner?.text ?? lastWinner?.sku ?? "—"}
-                      </p>
-                      <p className="text-md font-bold text-white flex items-center justify-center gap-2 drop-shadow">
-                        @{lastWinner.username ?? "Anónimo"}
-                      </p>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                {/* Alerta de ganador */}
+{lastWinner && (
+  <motion.div
+    initial={{ opacity: 0, scale: 0.5 }}
+    animate={{ opacity: 1, scale: 1 }}
+    exit={{ opacity: 0, scale: 0.5 }}
+    style={{
+      position: 'absolute',
+      top: '20%',
+      left: '25%',
+      transform: 'translate(-50%, -50%)',
+      width: '220px',
+      padding: '16px',
+      backgroundColor: 'rgb(30, 60, 180)',   // azul sólido
+      border: '4px solid rgb(255, 223, 0)', // borde amarillo
+      borderRadius: '16px',
+      textAlign: 'center',
+      boxShadow: '0 0 20px rgb(255, 223, 0)', // sombra amarilla
+      zIndex: 20,
+    }}
+  >
+    <p style={{
+      fontSize: '1.25rem',
+      fontWeight: 800,
+      color: 'rgb(255, 223, 0)',
+      marginBottom: '4px',
+    }}>
+      {lastWinner.segment?.text ?? lastWinner.text ?? lastWinner.sku ?? "—"}
+    </p>
+    <p style={{
+      fontSize: '1rem',
+      fontWeight: 600,
+      color: 'white',
+      margin: 0,
+    }}>
+      @{lastWinner.username ?? "Anónimo"}
+    </p>
+  </motion.div>
+)}
               </div>
             </div>
           </div>
