@@ -80,8 +80,8 @@ export default function WheelPage() {
       textFillStyle: "#000",
       textFontSize: 16,
       textFontWeight: "bold",
-      lineWidth: 4,               // borde
-      strokeStyle: "#ffffffff",     // borde amarillo brillante
+      lineWidth: 4,
+      strokeStyle: "#ffffffff",
     }))
 
     wheelRef.current = new window.Winwheel({
@@ -91,13 +91,13 @@ export default function WheelPage() {
       innerRadius: 30,
       segments: winwheelSegments,
       lineWidth: 4,
-      strokeStyle: "#ffff00",
-      textOrientation: "horizontal", // se alinea al extremo externo
+      strokeStyle: "#f1f16cff",
+      textOrientation: "horizontal",
       textAlignment: "outer",
       textMargin: 10,
       animation: {
         type: "spinToStop",
-        duration: 5,
+        duration: 3,
         spins: 8,
         easing: "Power3.easeOut"
       },
@@ -185,17 +185,17 @@ export default function WheelPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-950 via-fuchsia-900 to-pink-900">
+    <div className="min-h-screen bg-gradient-to-br from-purple-800 via-purple-700 to-purple-600 text-white">
       {/* Header */}
-      <header className="bg-black/40 backdrop-blur-md border-b border-purple-500/30">
+      <header className="bg-gradient-to-br from-purple-800 via-purple-700 to-purple-600 border-b border-purple-500">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Trophy className="w-8 h-8 text-yellow-400" />
-            <h1 className="text-2xl font-bold text-white">Ruleta para TISTOS</h1>
+            <h1 className="text-2xl font-bold">Ruleta para TISTOS</h1>
           </div>
           <button
             onClick={() => setShowAdmin(!showAdmin)}
-            className="flex items-center gap-2 px-4 py-2 bg-purple-600/30 hover:bg-purple-600/50 rounded-lg transition-colors text-white border border-purple-400/30"
+            className="flex items-center gap-2 px-4 py-2 bg-purple-600 rounded-lg text-white border border-purple-400"
           >
             <Settings className="w-5 h-5" />
             Admin
@@ -205,8 +205,7 @@ export default function WheelPage() {
 
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto mb-8">
-          <div className="bg-black backdrop-blur-md rounded-2xl p-8 border border-purple-500/30 shadow-2xl">
-            <div className="flex flex-col items-center">
+            <div className="bg-gradient-to-br from-purple-800 via-purple-700 to-purple-600 rounded-2xl p-8 border border-purple-600 shadow-2xl">            <div className="flex flex-col items-center">
               <div className="relative">
                 {/* Indicador */}
                 <div className="absolute -top-8 left-1/2 -translate-x-1/2 z-10">
@@ -219,13 +218,13 @@ export default function WheelPage() {
                 </div>
 
                 {/* Canvas de la ruleta */}
-                <canvas ref={canvasRef} id="wheelCanvas" width="400" height="400" className="drop-shadow-2xl bg-transparent" />
+                <canvas ref={canvasRef} id="wheelCanvas" width="400" height="400" className="drop-shadow-2xl" />
 
                 {/* Botón central */}
                 <button
                   onClick={() => testSpin()}
                   disabled={isSpinning}
-                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-gradient-to-br from-pink-500 to-purple-600 rounded-full shadow-lg flex items-center justify-center hover:scale-110 transition-transform disabled:opacity-50 disabled:cursor-not-allowed border-4 border-white"
+                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-pink-500 rounded-full shadow-lg flex items-center justify-center hover:scale-110 transition-transform disabled:opacity-50 disabled:cursor-not-allowed border-4 border-white"
                 >
                   <Play className="w-8 h-8 text-white" fill="white" />
                 </button>
@@ -238,7 +237,7 @@ export default function WheelPage() {
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.5 }}
                       className="absolute top-2/6 left-1/2 -translate-x-1/2 -translate-y-1/2 w-55 p-4
-                                 bg-gradient-to-r from-purple-800 via-indigo-700 to-blue-600
+                                 bg-blue-700
                                  border-4 border-yellow-400 rounded-2xl text-center
                                  shadow-[0_0_20px_rgba(255,255,0,0.7),0_0_40px_rgba(255,255,150,0.5)]
                                  z-20"
@@ -246,7 +245,7 @@ export default function WheelPage() {
                       <p className="text-xl font-extrabold text-yellow-400 mb-1 drop-shadow-lg">
                         {lastWinner?.segment?.text ?? lastWinner?.text ?? lastWinner?.sku ?? "—"}
                       </p>
-                      <p className="text-md font-bold text-white/90 flex items-center justify-center gap-2 drop-shadow">
+                      <p className="text-md font-bold text-white flex items-center justify-center gap-2 drop-shadow">
                         @{lastWinner.username ?? "Anónimo"}
                       </p>
                     </motion.div>
@@ -260,54 +259,49 @@ export default function WheelPage() {
         {/* Historial + Estado */}
         <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto mb-8">
           {/* Historial reciente */}
-          <div className="bg-purple-900/40 backdrop-blur-md rounded-2xl p-6 border border-purple-500/30">
-            <h3 className="text-xl font-bold text-white mb-4">Historial Reciente</h3>
+          <div className="bg-purple-800 rounded-2xl p-6 border border-purple-600">
+            <h3 className="text-xl font-bold mb-4">Historial Reciente</h3>
             <div className="space-y-3">
               {recentSpins.length === 0 ? (
-                <p className="text-purple-200/60 text-center py-4">No hay giros aún</p>
+                <p className="text-purple-200 text-center py-4">No hay giros aún</p>
               ) : (
                 recentSpins.map((spin, index) => (
-                  <motion.div
+                  <div
                     key={`${spin.timestamp}-${index}`}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className="bg-purple-800/30 rounded-lg p-3 border border-purple-400/20"
+                    className="bg-purple-700 rounded-lg p-3 border border-purple-500"
                   >
                     <div className="flex items-center justify-between mb-1">
-                      <span className="font-semibold text-white">{spin.segment?.text ?? spin.text ?? "—"}</span>
+                      <span className="font-semibold">{spin.segment?.text ?? spin.text ?? "—"}</span>
                       <div
-                        className="w-4 h-4 rounded-full border border-white/30"
+                        className="w-4 h-4 rounded-full border border-black"
                         style={{ backgroundColor: spin.segment?.color ?? "#444" }}
                       />
                     </div>
-                    <p className="text-sm text-purple-200/70">{spin.username}</p>
-                    <p className="text-xs text-purple-200/50">
-                      {spin.timestamp ? new Date(spin.timestamp).toLocaleTimeString() : "—"}
-                    </p>
-                  </motion.div>
+                    <p className="text-sm">{spin.username}</p>
+                    <p className="text-xs">{spin.timestamp ? new Date(spin.timestamp).toLocaleTimeString() : "—"}</p>
+                  </div>
                 ))
               )}
             </div>
           </div>
 
           {/* Info de conexión */}
-          <div className="bg-purple-900/40 backdrop-blur-md rounded-2xl p-6 border border-purple-500/30">
-            <h3 className="text-xl font-bold text-white mb-4">Estado</h3>
+          <div className="bg-purple-800 rounded-2xl p-6 border border-purple-600">
+            <h3 className="text-xl font-bold mb-4">Estado</h3>
             <div className="space-y-3 text-sm">
-              <div className="flex items-center justify-between p-3 bg-purple-800/30 rounded-lg">
-                <span className="text-purple-200/70">Conexión:</span>
+              <div className="flex items-center justify-between p-3 bg-purple-700 rounded-lg">
+                <span>Conexión:</span>
                 <span className={`font-semibold ${socket?.connected ? "text-green-400" : "text-red-400"}`}>
                   {socket?.connected ? "🟢 Conectado" : "🔴 Desconectado"}
                 </span>
               </div>
-              <div className="flex items-center justify-between p-3 bg-purple-800/30 rounded-lg">
-                <span className="text-purple-200/70">Segmentos:</span>
-                <span className="font-semibold text-white">{segments.length}</span>
+              <div className="flex items-center justify-between p-3 bg-purple-700 rounded-lg">
+                <span>Segmentos:</span>
+                <span className="font-semibold">{segments.length}</span>
               </div>
-              <div className="flex items-center justify-between p-3 bg-purple-800/30 rounded-lg">
-                <span className="text-purple-200/70">Estado:</span>
-                <span className="font-semibold text-white">{isSpinning ? "🎡 Girando..." : "⏸️ Esperando"}</span>
+              <div className="flex items-center justify-between p-3 bg-purple-700 rounded-lg">
+                <span>Estado:</span>
+                <span className="font-semibold">{isSpinning ? "🎡 Girando..." : "⏸️ Esperando"}</span>
               </div>
             </div>
           </div>
@@ -360,7 +354,7 @@ function AdminPanel({ segments, onUpdate }: { segments: Segment[]; onUpdate: (se
   }
 
   return (
-    <div className="bg-black/30 backdrop-blur-md border border-purple-500/30 rounded-2xl p-6 mt-8">
+    <div className="bg-purple-800 border border-purple-600 rounded-2xl p-6 mt-8">
       <h2 className="text-white text-xl font-bold mb-4">Admin Panel</h2>
       <div className="space-y-4">
         {editedSegments.map((seg, idx) => (
@@ -385,7 +379,7 @@ function AdminPanel({ segments, onUpdate }: { segments: Segment[]; onUpdate: (se
       </div>
       <button
         onClick={handleSave}
-        className="mt-4 px-4 py-2 bg-purple-600/40 hover:bg-purple-600/60 text-white rounded-lg border border-purple-400/30"
+        className="mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg border border-purple-400"
       >
         Guardar Cambios
       </button>
