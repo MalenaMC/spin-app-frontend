@@ -236,8 +236,8 @@ export default function WheelPage() {
                       initial={{ opacity: 0, scale: 0.5 }}
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.5 }}
-                      className="absolute top-2/6 left-1/2 -translate-x-1/2 -translate-y-1/2 w-55 p-4
-                                 bg-blue-700
+                      className="bg-blue-800/95 absolute top-2/6 left-1/2 -translate-x-1/2 -translate-y-1/2 w-55 p-4
+                                 
                                  border-4 border-yellow-400 rounded-2xl text-center
                                  shadow-[0_0_20px_rgba(255,255,0,0.7),0_0_40px_rgba(255,255,150,0.5)]
                                  z-20"
