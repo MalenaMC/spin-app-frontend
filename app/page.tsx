@@ -207,74 +207,101 @@ export default function WheelPage() {
         <div className="max-w-2xl mx-auto mb-8">
             <div className="bg-gradient-to-br from-purple-800 via-purple-700 to-purple-600 rounded-2xl p-8 border border-purple-600 shadow-2xl">            <div className="flex flex-col items-center">
               <div className="relative">
-                {/* Indicador */}
-<div style={{
-    position: 'absolute',
-    top: '-30px',
-    left: '50%',
-    transform: 'translateX(-50%)',
-    zIndex: 10,
-}}>
-  <div style={{
-      width: 0,
-      height: 0,
-      borderLeft: '20px solid transparent',
-      borderRight: '20px solid transparent',
-      borderTop: '30px solid rgb(255, 223, 0)', // amarillo sólido
-  }} />
-</div>
+                {/* Indicador con sombra propia */}
+                <div style={{
+                    position: 'absolute',
+                    top: '-30px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    zIndex: 10,
+                }}>
+                  <div style={{
+                      width: 0,
+                      height: 0,
+                      borderLeft: '20px solid transparent',
+                      borderRight: '20px solid transparent',
+                      borderTop: '30px solid rgb(255, 223, 0)', // amarillo sólido
+                      filter: 'drop-shadow(0 0 8px rgb(255, 223, 0)) drop-shadow(0 0 15px rgba(255, 223, 0, 0.5))', // sombra glow
+                  }} />
+                </div>
 
                 {/* Canvas de la ruleta */}
                 <canvas ref={canvasRef} id="wheelCanvas" width="400" height="400" className="drop-shadow-2xl" />
 
-                {/* Botón central */}
-                <button
-                  onClick={() => testSpin()}
-                  disabled={isSpinning}
-                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-pink-500 rounded-full shadow-lg flex items-center justify-center hover:scale-110 transition-transform disabled:opacity-50 disabled:cursor-not-allowed border-4 border-white"
-                >
-                  <Play className="w-8 h-8 text-white" fill="white" />
-                </button>
+                {/* Botón central con degradado */}
+                  <button
+                    onClick={() => testSpin()}
+                    disabled={isSpinning}
+                    style={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      width: '80px',
+                      height: '80px',
+                      borderRadius: '50%',
+                      border: '4px solid white',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      background: 'linear-gradient(135deg, rgb(255, 50, 150), rgb(128, 0, 255))', // degradado rosa → morado
+                      boxShadow: '0 0 15px rgb(255,50,150), 0 0 30px rgba(128,0,255,0.6)', // glow
+                      cursor: isSpinning ? 'not-allowed' : 'pointer',
+                      opacity: isSpinning ? 0.5 : 1,
+                      transition: 'transform 0.2s ease',
+                    }}
+                    onMouseEnter={(e) => { if(!isSpinning) e.currentTarget.style.transform = 'translate(-50%, -50%) scale(1.1)' }}
+                    onMouseLeave={(e) => { if(!isSpinning) e.currentTarget.style.transform = 'translate(-50%, -50%) scale(1)' }}
+                  >
+                    <Play style={{ width: '32px', height: '32px', color: 'white', fill: 'white' }} />
+                  </button>
 
-                {/* Alerta de ganador */}
-{lastWinner && (
-  <motion.div
-    initial={{ opacity: 0, scale: 0.5 }}
-    animate={{ opacity: 1, scale: 1 }}
-    exit={{ opacity: 0, scale: 0.5 }}
-    style={{
-      position: 'absolute',
-      top: '20%',
-      left: '25%',
-      transform: 'translate(-50%, -50%)',
-      width: '220px',
-      padding: '16px',
-      backgroundColor: 'rgb(30, 60, 180)',   // azul sólido
-      border: '4px solid rgb(255, 223, 0)', // borde amarillo
-      borderRadius: '16px',
-      textAlign: 'center',
-      boxShadow: '0 0 20px rgb(255, 223, 0)', // sombra amarilla
-      zIndex: 20,
-    }}
-  >
-    <p style={{
-      fontSize: '1.25rem',
-      fontWeight: 800,
-      color: 'rgb(255, 223, 0)',
-      marginBottom: '4px',
-    }}>
-      {lastWinner.segment?.text ?? lastWinner.text ?? lastWinner.sku ?? "—"}
-    </p>
-    <p style={{
-      fontSize: '1rem',
-      fontWeight: 600,
-      color: 'white',
-      margin: 0,
-    }}>
-      @{lastWinner.username ?? "Anónimo"}
-    </p>
-  </motion.div>
-)}
+                {/* Alerta de ganador con glow */}
+                {lastWinner && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.5 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.5 }}
+                    style={{
+                      position: 'absolute',
+                      top: '20%',
+                      left: '25%',
+                      transform: 'translate(-50%, -50%)',
+                      width: '220px',
+                      padding: '16px',
+                      background: 'linear-gradient(135deg, rgba(40, 44, 109, 1), rgba(39, 14, 71, 1), rgba(103, 21, 114, 1))', // degradado glow
+                      border: '4px solid rgba(255, 237, 156, 1)', // borde amarillo
+                      borderRadius: '16px',
+                      textAlign: 'center',
+                      boxShadow: `
+                        0 0 10px rgba(255, 238, 0, 1),
+                        0 0 25px rgba(105, 46, 119, 1),
+                        0 0 40px rgba(28, 51, 100, 1),
+                        0 0 15px rgba(255, 0, 242, 1)
+                      `, // sombras múltiples para efecto glow
+                      zIndex: 20,
+                    }}
+                  >
+                    <p style={{
+                      fontSize: '1.25rem',
+                      fontWeight: 800,
+                      color: 'rgba(255, 236, 253, 1)',
+                      marginBottom: '4px',
+                      textShadow: '0 0 5px rgba(255, 0, 212, 1), 0 0 5px rgba(255, 0, 255, 1)', // brillo en el texto
+                    }}>
+                      {lastWinner.segment?.text ?? lastWinner.text ?? lastWinner.sku ?? "—"}
+                    </p>
+                    <p style={{
+                      fontSize: '1rem',
+                      fontWeight: 600,
+                      color: 'white',
+                      margin: 0,
+                      textShadow: '0 0 2px white, 0 0 5px rgba(255, 255, 255, 1)', // brillo leve en usuario
+                    }}>
+                      @{lastWinner.username ?? "Anónimo"}
+                    </p>
+                  </motion.div>
+                )}
               </div>
             </div>
           </div>
