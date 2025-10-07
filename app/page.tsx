@@ -1,9 +1,8 @@
 "use client"
 import { useEffect, useState, useRef } from "react"
 import { io, type Socket } from "socket.io-client"
-import { Settings, Play, Users, Trophy } from "lucide-react"
+import { Settings, Play, Trophy } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
-
 
 interface Segment {
   id: string
@@ -35,6 +34,7 @@ export default function WheelPage() {
   const [lastWinner, setLastWinner] = useState<SpinEvent | null>(null)
   const [showAdmin, setShowAdmin] = useState(false)
   const [recentSpins, setRecentSpins] = useState<SpinEvent[]>([])
+  const [spinQueue, setSpinQueue] = useState<SpinEvent[]>([])
   const wheelRef = useRef<any>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
@@ -54,7 +54,7 @@ export default function WheelPage() {
 
     newSocket.on("spin", (event: SpinEvent) => {
       console.log("🎡 Evento de giro recibido:", event)
-      handleSpin(event)
+      enqueueSpin(event)
     })
 
     setSocket(newSocket)
@@ -80,19 +80,21 @@ export default function WheelPage() {
       textFillStyle: "#000",
       textFontSize: 16,
       textFontWeight: "bold",
+      lineWidth: 4,               // borde
+      strokeStyle: "#ffffffff",     // borde amarillo brillante
     }))
 
     wheelRef.current = new window.Winwheel({
       canvasId: "wheelCanvas",
       numSegments: segments.length,
-      outerRadius: 200,
+      outerRadius: 198,
       innerRadius: 30,
       segments: winwheelSegments,
-      lineWidth: 3,
-      strokeStyle: "#ffffff",
-      textOrientation: "horizontal",
-      textAlignment: "center",
-      textMargin: 0,
+      lineWidth: 4,
+      strokeStyle: "#ffff00",
+      textOrientation: "horizontal", // se alinea al extremo externo
+      textAlignment: "outer",
+      textMargin: 10,
       animation: {
         type: "spinToStop",
         duration: 5,
@@ -102,16 +104,21 @@ export default function WheelPage() {
     })
   }
 
-  const handleSpin = (event: SpinEvent) => {
-    // si no hay wheel, o ya está girando, salimos
-    if (!wheelRef.current) {
-      console.warn("No hay wheelRef cuando llega evento:", event)
-      return
+  /*** COLA DE SPINS ***/
+  const enqueueSpin = (event: SpinEvent) => {
+    setSpinQueue((prev) => [...prev, event])
+  }
+
+  useEffect(() => {
+    if (!isSpinning && spinQueue.length > 0) {
+      const nextSpin = spinQueue[0]
+      setSpinQueue((prev) => prev.slice(1))
+      runSpin(nextSpin)
     }
-    if (isSpinning) {
-      console.warn("Ignorando spin porque isSpinning=true", event)
-      return
-    }
+  }, [spinQueue, isSpinning])
+
+  const runSpin = (event: SpinEvent) => {
+    if (!wheelRef.current) return
 
     setIsSpinning(true)
 
@@ -133,15 +140,8 @@ export default function WheelPage() {
 
         const resolvedSegment: Segment = {
           id: event.segment?.id ?? `seg_${segmentNumber}`,
-          text:
-            indicatedSegment?.text ??
-            event.segment?.text ??
-            event.text ??
-            `Segmento ${segmentNumber}`,
-          color:
-            indicatedSegment?.fillStyle ??
-            event.segment?.color ??
-            "#cccccc",
+          text: indicatedSegment?.text ?? event.segment?.text ?? event.text ?? `Segmento ${segmentNumber}`,
+          color: indicatedSegment?.fillStyle ?? event.segment?.color ?? "#cccccc",
         }
 
         const winner: SpinEvent = {
@@ -154,28 +154,19 @@ export default function WheelPage() {
           timestamp: finishedAt,
         }
 
-        console.log("SETLAST: preparando a setLastWinner:", winner)
-
         setLastWinner(winner)
-        setRecentSpins((prev) => {
-          const newList = [winner, ...prev]
-          return newList.slice(0, 5)
-        })
-
+        setRecentSpins((prev) => [winner, ...prev].slice(0, 5))
         setIsSpinning(false)
         console.log("🏆 Ganador (callback):", winner.text, "segmentNumber:", segmentNumber)
       },
     }
 
-    // ahora llama a la función nativa startAnimation()
     if (typeof wheelRef.current.startAnimation === "function") {
-      console.log("Iniciando animación con stopAngle:", stopAngle, "segmentNumber:", segmentNumber)
       wheelRef.current.startAnimation()
     } else {
       console.error("startAnimation no es función en wheelRef.current:", wheelRef.current)
       setIsSpinning(false)
     }
-
   }
 
   const testSpin = async (sku?: string) => {
@@ -193,14 +184,6 @@ export default function WheelPage() {
     }
   }
 
-  useEffect(() => {
-    console.log("STATE lastWinner cambió:", lastWinner)
-  }, [lastWinner])
-
-  useEffect(() => {
-    console.log("STATE recentSpins cambió (len):", recentSpins.length, recentSpins)
-  }, [recentSpins])
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-950 via-fuchsia-900 to-pink-900">
       {/* Header */}
@@ -208,7 +191,7 @@ export default function WheelPage() {
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Trophy className="w-8 h-8 text-yellow-400" />
-            <h1 className="text-2xl font-bold text-white">Ruleta Tikfinity</h1>
+            <h1 className="text-2xl font-bold text-white">Ruleta para TISTOS</h1>
           </div>
           <button
             onClick={() => setShowAdmin(!showAdmin)}
@@ -222,16 +205,21 @@ export default function WheelPage() {
 
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto mb-8">
-          <div className="bg-purple-900/40 backdrop-blur-md rounded-2xl p-8 border border-purple-500/30 shadow-2xl">
+          <div className="bg-black backdrop-blur-md rounded-2xl p-8 border border-purple-500/30 shadow-2xl">
             <div className="flex flex-col items-center">
               <div className="relative">
                 {/* Indicador */}
                 <div className="absolute -top-8 left-1/2 -translate-x-1/2 z-10">
-                  <div className="w-0 h-0 border-l-[20px] border-l-transparent border-r-[20px] border-r-transparent border-t-[30px] border-t-pink-500 drop-shadow-lg" />
+                  <div
+                    className="w-0 h-0 border-l-[20px] border-l-transparent
+                              border-r-[20px] border-r-transparent
+                              border-t-[30px] border-t-yellow-400
+                              drop-shadow-[0_0_10px_rgba(255,255,0,0.7),0_0_20px_rgba(128,0,255,0.5)]"
+                  />
                 </div>
 
                 {/* Canvas de la ruleta */}
-                <canvas ref={canvasRef} id="wheelCanvas" width="400" height="400" className="drop-shadow-2xl" />
+                <canvas ref={canvasRef} id="wheelCanvas" width="400" height="400" className="drop-shadow-2xl bg-transparent" />
 
                 {/* Botón central */}
                 <button
@@ -241,57 +229,35 @@ export default function WheelPage() {
                 >
                   <Play className="w-8 h-8 text-white" fill="white" />
                 </button>
-              
-                {/* ALERTA DE GANADOR SOBRE LA RULETA */}
+
+                {/* ALERTA DE GANADOR */}
                 <AnimatePresence>
                   {lastWinner && (
                     <motion.div
                       initial={{ opacity: 0, scale: 0.5 }}
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.5 }}
-                      className="absolute top-2/6 left-1/2 -translate-x-1/2 -translate-y-1/2 w-55 p-4 bg-purple-900/90 border-2 border-pink-400 rounded-2xl text-center shadow-2xl z-20"              >
-                      <div className="flex items-center justify-center gap-3 mb-1">
-                        <h2 className="text-1xl font-bold text-white">¡Ganaste</h2>
-                      </div>
-                      <p className="text-2xl font-bold text-white mb-1">
-                        {lastWinner?.segment?.text ?? lastWinner?.text ?? lastWinner?.sku ?? "—"}!
+                      className="absolute top-2/6 left-1/2 -translate-x-1/2 -translate-y-1/2 w-55 p-4
+                                 bg-gradient-to-r from-purple-800 via-indigo-700 to-blue-600
+                                 border-4 border-yellow-400 rounded-2xl text-center
+                                 shadow-[0_0_20px_rgba(255,255,0,0.7),0_0_40px_rgba(255,255,150,0.5)]
+                                 z-20"
+                    >
+                      <p className="text-xl font-extrabold text-yellow-400 mb-1 drop-shadow-lg">
+                        {lastWinner?.segment?.text ?? lastWinner?.text ?? lastWinner?.sku ?? "—"}
                       </p>
-                      <p className="text-md font-bold text-white/90 flex items-center justify-center gap-2">
-                        @
-                        {lastWinner.username ?? "Anónimo"}
+                      <p className="text-md font-bold text-white/90 flex items-center justify-center gap-2 drop-shadow">
+                        @{lastWinner.username ?? "Anónimo"}
                       </p>
                     </motion.div>
                   )}
                 </AnimatePresence>
-              
               </div>
-
-              {/* Botones de prueba
-              <div className="mt-8 flex flex-wrap gap-2 justify-center">
-                <button
-                  onClick={() => testSpin()}
-                  disabled={isSpinning}
-                  className="px-4 py-2 bg-fuchsia-600 hover:bg-fuchsia-700 text-white rounded-lg transition-colors disabled:opacity-50 font-medium"
-                >
-                  🎲 Giro Aleatorio
-                </button>
-                {segments.slice(0, 3).map((seg) => (
-                  <button
-                    key={seg.id}
-                    onClick={() => testSpin(seg.id)}
-                    disabled={isSpinning}
-                    className="px-4 py-2 text-white rounded-lg transition-colors disabled:opacity-50 font-medium hover:opacity-90"
-                    style={{ backgroundColor: seg.color }}
-                  >
-                    {seg.text}
-                  </button>
-                ))}
-              </div>
-               */}
             </div>
           </div>
         </div>
 
+        {/* Historial + Estado */}
         <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto mb-8">
           {/* Historial reciente */}
           <div className="bg-purple-900/40 backdrop-blur-md rounded-2xl p-6 border border-purple-500/30">
@@ -309,7 +275,8 @@ export default function WheelPage() {
                     className="bg-purple-800/30 rounded-lg p-3 border border-purple-400/20"
                   >
                     <div className="flex items-center justify-between mb-1">
-                      <span className="font-semibold text-white">{spin.segment?.text ?? spin.text ?? "—"}</span>                      <div
+                      <span className="font-semibold text-white">{spin.segment?.text ?? spin.text ?? "—"}</span>
+                      <div
                         className="w-4 h-4 rounded-full border border-white/30"
                         style={{ backgroundColor: spin.segment?.color ?? "#444" }}
                       />
@@ -346,6 +313,7 @@ export default function WheelPage() {
           </div>
         </div>
 
+        {/* Admin Panel */}
         <AnimatePresence>
           {showAdmin && (
             <motion.div
@@ -367,6 +335,7 @@ export default function WheelPage() {
   )
 }
 
+// ------------------------- ADMIN PANEL -------------------------
 function AdminPanel({ segments, onUpdate }: { segments: Segment[]; onUpdate: (segments: Segment[]) => void }) {
   const [editedSegments, setEditedSegments] = useState<Segment[]>(segments)
 
@@ -380,121 +349,46 @@ function AdminPanel({ segments, onUpdate }: { segments: Segment[]; onUpdate: (se
       const response = await fetch(`${serverUrl}/api/segments`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ segments: editedSegments }),
+        body: JSON.stringify(editedSegments),
       })
-
-      if (response.ok) {
-        alert("✅ Segmentos actualizados correctamente")
-        onUpdate(editedSegments)
-      } else {
-        alert("❌ Error al actualizar segmentos")
-      }
+      const data = await response.json()
+      console.log("Segmentos actualizados:", data)
+      onUpdate(data)
     } catch (err) {
-      console.error("Error:", err)
-      alert("❌ Error de conexión")
+      console.error("Error al guardar segmentos:", err)
     }
-  }
-
-  const addSegment = () => {
-    const newSegment: Segment = {
-      id: `SKU_${Date.now()}`,
-      text: `Premio ${editedSegments.length + 1}`,
-      color: "#" + Math.floor(Math.random() * 16777215).toString(16),
-    }
-    setEditedSegments([...editedSegments, newSegment])
-  }
-
-  const removeSegment = (index: number) => {
-    setEditedSegments(editedSegments.filter((_, i) => i !== index))
-  }
-
-  const updateSegment = (index: number, field: keyof Segment, value: string) => {
-    const updated = [...editedSegments]
-    updated[index] = { ...updated[index], [field]: value }
-    setEditedSegments(updated)
   }
 
   return (
-    <div className="bg-purple-900/40 backdrop-blur-md rounded-2xl p-6 border border-purple-500/30">
-      <h2 className="text-2xl font-bold text-white mb-6">Panel de Administración</h2>
-
-      <div className="space-y-4 mb-6">
+    <div className="bg-black/30 backdrop-blur-md border border-purple-500/30 rounded-2xl p-6 mt-8">
+      <h2 className="text-white text-xl font-bold mb-4">Admin Panel</h2>
+      <div className="space-y-4">
         {editedSegments.map((seg, idx) => (
-          <div key={idx} className="bg-purple-800/30 rounded-lg p-4 border border-purple-400/20">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div>
-                <label className="block text-sm text-purple-200/70 mb-2 font-medium">ID (SKU)</label>
-                <input
-                  type="text"
-                  value={seg.id}
-                  onChange={(e) => updateSegment(idx, "id", e.target.value)}
-                  className="w-full px-3 py-2 bg-purple-950/50 border border-purple-400/30 rounded text-white placeholder:text-purple-300/50"
-                />
-              </div>
-              <div>
-                <label className="block text-sm text-purple-200/70 mb-2 font-medium">Texto</label>
-                <input
-                  type="text"
-                  value={seg.text}
-                  onChange={(e) => updateSegment(idx, "text", e.target.value)}
-                  className="w-full px-3 py-2 bg-purple-950/50 border border-purple-400/30 rounded text-white placeholder:text-purple-300/50"
-                />
-              </div>
-              <div>
-                <label className="block text-sm text-purple-200/70 mb-2 font-medium">Color</label>
-                <div className="flex gap-2">
-                  <input
-                    type="color"
-                    value={seg.color}
-                    onChange={(e) => updateSegment(idx, "color", e.target.value)}
-                    className="w-12 h-10 rounded cursor-pointer border border-purple-400/30"
-                  />
-                  <input
-                    type="text"
-                    value={seg.color}
-                    onChange={(e) => updateSegment(idx, "color", e.target.value)}
-                    className="flex-1 px-3 py-2 bg-purple-950/50 border border-purple-400/30 rounded text-white placeholder:text-purple-300/50"
-                  />
-                </div>
-              </div>
-              <div className="flex items-end">
-                <button
-                  onClick={() => removeSegment(idx)}
-                  className="w-full px-4 py-2 bg-red-500/80 hover:bg-red-600 text-white rounded transition-colors font-medium"
-                >
-                  Eliminar
-                </button>
-              </div>
-            </div>
+          <div key={seg.id} className="flex gap-3 items-center">
+            <input
+              className="rounded-lg px-3 py-1 w-32 text-black"
+              value={seg.text}
+              onChange={(e) =>
+                setEditedSegments((prev) => prev.map((s, i) => (i === idx ? { ...s, text: e.target.value } : s)))
+              }
+            />
+            <input
+              type="color"
+              className="w-10 h-10 p-0 border-none"
+              value={seg.color}
+              onChange={(e) =>
+                setEditedSegments((prev) => prev.map((s, i) => (i === idx ? { ...s, color: e.target.value } : s)))
+              }
+            />
           </div>
         ))}
       </div>
-
-      <div className="flex flex-wrap gap-4">
-        <button
-          onClick={addSegment}
-          className="px-6 py-3 bg-fuchsia-600 hover:bg-fuchsia-700 text-white rounded-lg transition-colors font-medium"
-        >
-          + Agregar Segmento
-        </button>
-        <button
-          onClick={handleSave}
-          className="px-6 py-3 bg-pink-600 hover:bg-pink-700 text-white rounded-lg transition-colors font-medium"
-        >
-          💾 Guardar Cambios
-        </button>
-      </div>
-
-      <div className="mt-6 p-4 bg-purple-800/30 border border-purple-400/30 rounded-lg">
-        <h3 className="font-bold text-white mb-2">📡 Webhook URL para Tikfinity/IFTTT:</h3>
-        <code className="block bg-black/40 p-3 rounded text-pink-300 text-sm break-all">
-          {process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:3001"}/webhook/tikfinity
-        </code>
-        <p className="text-sm text-purple-200/70 mt-2">
-          Configura esta URL en IFTTT como tu webhook endpoint. Los parámetros value1, value2, value3 se procesarán
-          automáticamente.
-        </p>
-      </div>
+      <button
+        onClick={handleSave}
+        className="mt-4 px-4 py-2 bg-purple-600/40 hover:bg-purple-600/60 text-white rounded-lg border border-purple-400/30"
+      >
+        Guardar Cambios
+      </button>
     </div>
   )
 }
