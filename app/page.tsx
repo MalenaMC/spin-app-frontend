@@ -392,46 +392,123 @@ function AdminPanel({ segments, onUpdate }: { segments: Segment[]; onUpdate: (se
       const response = await fetch(`${serverUrl}/api/segments`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(editedSegments),
+        body: JSON.stringify({ segments: editedSegments }),
       })
-      const data = await response.json()
-      console.log("Segmentos actualizados:", data)
-      onUpdate(data)
+      if (response.ok) {
+        alert("✅ Segmentos actualizados correctamente")
+        onUpdate(editedSegments)
+      } else {
+        alert("❌ Error al actualizar segmentos")
+      }
     } catch (err) {
-      console.error("Error al guardar segmentos:", err)
+      console.error("Error:", err)
+      alert("❌ Error de conexión")
     }
   }
 
+  const addSegment = () => {
+    const newSegment: Segment = {
+      id: `SKU_${Date.now()}`,
+      text: `Premio ${editedSegments.length + 1}`,
+      color: "#" + Math.floor(Math.random() * 16777215).toString(16),
+    }
+    setEditedSegments([...editedSegments, newSegment])
+  }
+
+  const removeSegment = (index: number) => {
+    setEditedSegments(editedSegments.filter((_, i) => i !== index))
+  }
+
+  const updateSegment = (index: number, field: keyof Segment, value: string) => {
+    const updated = [...editedSegments]
+    updated[index] = { ...updated[index], [field]: value }
+    setEditedSegments(updated)
+  }
+
   return (
-    <div className="bg-purple-800 border border-purple-600 rounded-2xl p-6 mt-8">
-      <h2 className="text-white text-xl font-bold mb-4">Admin Panel</h2>
-      <div className="space-y-4">
+    <div className="bg-purple-900/40 backdrop-blur-md rounded-2xl p-6 border border-purple-500/30">
+      <h2 className="text-2xl font-bold text-white mb-6">Panel de Administración</h2>
+
+      <div className="space-y-4 mb-6">
         {editedSegments.map((seg, idx) => (
-          <div key={seg.id} className="flex gap-3 items-center">
-            <input
-              className="rounded-lg px-3 py-1 w-32 text-black"
-              value={seg.text}
-              onChange={(e) =>
-                setEditedSegments((prev) => prev.map((s, i) => (i === idx ? { ...s, text: e.target.value } : s)))
-              }
-            />
-            <input
-              type="color"
-              className="w-10 h-10 p-0 border-none"
-              value={seg.color}
-              onChange={(e) =>
-                setEditedSegments((prev) => prev.map((s, i) => (i === idx ? { ...s, color: e.target.value } : s)))
-              }
-            />
+          <div key={idx} className="bg-purple-800/30 rounded-lg p-4 border border-purple-400/20">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div>
+                <label className="block text-sm text-purple-200/70 mb-2 font-medium">ID (SKU)</label>
+                <input
+                  type="text"
+                  value={seg.id}
+                  onChange={(e) => updateSegment(idx, "id", e.target.value)}
+                  className="w-full px-3 py-2 bg-purple-950/50 border border-purple-400/30 rounded text-white placeholder:text-purple-300/50"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm text-purple-200/70 mb-2 font-medium">Texto</label>
+                <input
+                  type="text"
+                  value={seg.text}
+                  onChange={(e) => updateSegment(idx, "text", e.target.value)}
+                  className="w-full px-3 py-2 bg-purple-950/50 border border-purple-400/30 rounded text-white placeholder:text-purple-300/50"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm text-purple-200/70 mb-2 font-medium">Color</label>
+                <div className="flex gap-2">
+                  <input
+                    type="color"
+                    value={seg.color}
+                    onChange={(e) => updateSegment(idx, "color", e.target.value)}
+                    className="w-12 h-10 rounded cursor-pointer border border-purple-400/30"
+                  />
+                  <input
+                    type="text"
+                    value={seg.color}
+                    onChange={(e) => updateSegment(idx, "color", e.target.value)}
+                    className="flex-1 px-3 py-2 bg-purple-950/50 border border-purple-400/30 rounded text-white placeholder:text-purple-300/50"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-end">
+                <button
+                  onClick={() => removeSegment(idx)}
+                  className="w-full px-4 py-2 bg-red-500/80 hover:bg-red-600 text-white rounded transition-colors font-medium"
+                >
+                  Eliminar
+                </button>
+              </div>
+            </div>
           </div>
         ))}
       </div>
-      <button
-        onClick={handleSave}
-        className="mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg border border-purple-400"
-      >
-        Guardar Cambios
-      </button>
+
+      <div className="flex flex-wrap gap-4">
+        <button
+          onClick={addSegment}
+          className="px-6 py-3 bg-fuchsia-600 hover:bg-fuchsia-700 text-white rounded-lg transition-colors font-medium"
+        >
+          + Agregar Segmento
+        </button>
+
+        <button
+          onClick={handleSave}
+          className="px-6 py-3 bg-pink-600 hover:bg-pink-700 text-white rounded-lg transition-colors font-medium"
+        >
+          💾 Guardar Cambios
+        </button>
+      </div>
+
+      <div className="mt-6 p-4 bg-purple-800/30 border border-purple-400/30 rounded-lg">
+        <h3 className="font-bold text-white mb-2">📡 Webhook URL para Tikfinity/IFTTT:</h3>
+        <code className="block bg-black/40 p-3 rounded text-pink-300 text-sm break-all">
+          {process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:3001"}/webhook/tikfinity
+        </code>
+        <p className="text-sm text-purple-200/70 mt-2">
+          Configura esta URL en IFTTT como tu webhook endpoint. Los parámetros value1, value2, value3 se procesarán automáticamente.
+        </p>
+      </div>
     </div>
   )
 }
