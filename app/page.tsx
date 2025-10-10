@@ -179,7 +179,7 @@ export default function WheelPage() {
         console.log("🏆 Ganador (callback):", winner.text, "segmentNumber:", segmentNumber)
 
         // 🔥 Confeti + sonido si es SKU_1040
-        if (winner.segment?.id === "SKU_1040") {
+        if (winner.segment?.id === "SKU_1001" || winner.segment?.id === "SKU_1024" || winner.segment?.id === "SKU_1047") {
           launchConfetti()
           playSound("/sounds/confetti.mp3") // asegúrate de tener este archivo en public/sounds
         }
